@@ -1,12 +1,16 @@
-import sys, random
+import sys
+import random
+import matplotlib.pyplot as plt
+from matplotlib.animation import FuncAnimation
+
 sys.setrecursionlimit(10000000)
-estados_visitados = set()
+estados_visitados = []
 
 # genera una matriz con datos random del 0 al 8 para el 8-puzzle
 F = [random.sample(range(9), 9)]
 
 # retorna la cantidad de valores desordenados en el 8-puzzle
-def goal_test(V:list[int]):
+def goal_test(V: list[int]):
     desordenados = 0
     if (V[0] != 1):
         desordenados += 1
@@ -29,7 +33,7 @@ def goal_test(V:list[int]):
 
     return desordenados
 
-def expand(F:list[int]):
+def expand(F: list[int]):
     lista_nueva = []
     global estados_visitados
 
@@ -206,7 +210,7 @@ def expand(F:list[int]):
 
     return lista_nueva
 
-def evaluate(F:list[list[int]]):
+def evaluate(F: list[list[int]]):
     evaluados = []
     for i in F:
 
@@ -215,7 +219,7 @@ def evaluate(F:list[list[int]]):
 
     return evaluados
 
-def Star(F:list[list[int]]):
+def Star(F: list[list[int]]):
     global estados_visitados
 
     if len(F) == 0:
@@ -226,8 +230,8 @@ def Star(F:list[list[int]]):
     F.sort(key=lambda x: goal_test(x))
     estado_actual = F.pop(0)
 
-    estados_visitados.add(tuple(estado_actual))
-    print(estado_actual)
+    estados_visitados.append(estado_actual)
+    print_estado(estado_actual)
 
     gt = goal_test(estado_actual)
     if gt == 0:
@@ -238,9 +242,62 @@ def Star(F:list[list[int]]):
 
     # añade todos los nodos hijos al arreglo (los que no se han visitado)
     for h in hijos:
-        if tuple(h) not in estados_visitados:
+        if h not in estados_visitados:
             F.append(h)
 
     Star(F)
 
+def print_estado(estado: list[int]):
+    for i in range(3):
+        for j in range(3):
+            if estado[i * 3 + j] == 0:
+                print("0", end=' ')
+            else:
+                print(estado[i * 3 + j], end=' ')
+        print()
+    print()
+
+# Configuración de la animación
+fig, ax = plt.subplots()
+ax.axis('off')
+# Inicializamos la imagen con la primera matriz de estado generada aleatoriamente
+im = ax.imshow([[F[0][i * 3 + j] for j in range(3)] for i in range(3)], cmap="Blues", vmin=0, vmax=8)
+
+# Inicializar la lista de textos
+texts = [[None, None, None], [None, None, None], [None, None, None]]
+
+# Función de animación
+def animate(frame):
+    global texts
+    if frame < len(estados_visitados):
+        estado = estados_visitados[frame]
+        matriz_estado = [[estado[i * 3 + j] for j in range(3)] for i in range(3)]
+        im.set_array(matriz_estado)
+        
+        # Actualizar el texto de la imagen
+        for i in range(3):
+            for j in range(3):
+                val = matriz_estado[i][j]
+                if val != 0:
+                    if texts[i][j] is None:
+                        text = ax.text(j, i, val, ha="center", va="center", color="black", fontsize=20)
+                        texts[i][j] = text
+                    else:
+                        texts[i][j].set_text(val)
+                else:
+                    if texts[i][j] is not None:
+                        texts[i][j].set_text('')
+    else:
+        # Si no hay más fotogramas, eliminar todos los textos para limpiar la figura
+        for row in texts:
+            for text in row:
+                if text is not None:
+                    text.set_text('')
+    
+    return [im]
+
 Star(F)
+
+# Configuración de la animación
+ani = FuncAnimation(fig, animate, frames=len(estados_visitados), blit=True, interval=1000)
+plt.show()
