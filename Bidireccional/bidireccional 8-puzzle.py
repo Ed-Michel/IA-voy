@@ -1,7 +1,24 @@
+import pygame
+from pygame.locals import *
+
 class Nodo:
     def __init__(self, estado, padre=None):
         self.estado = estado
         self.padre = padre
+
+# Define colors
+BLACK = (0, 0, 0)
+WHITE = (255, 255, 255)
+GRAY = (200, 200, 200)
+
+# Set up the display
+WIDTH, HEIGHT = 300, 300
+TILE_SIZE = WIDTH // 3
+
+pygame.init()
+window = pygame.display.set_mode((WIDTH, HEIGHT))
+pygame.display.set_caption("8 Puzzle")
+font = pygame.font.Font(None, 36)
 
 def expandir_nodo(nodo):
     hijos = []
@@ -90,6 +107,18 @@ def bs_META(nodos_visitados_meta, nodos_visitados_inicio, nodos_meta):
     nodos_meta.extend(OS)
     return False
 
+# Display the current state of the 8-puzzle
+def display_puzzle(puzzle):
+    window.fill(WHITE)
+    for i in range(3):
+        for j in range(3):
+            pygame.draw.rect(window, GRAY, (j * TILE_SIZE, i * TILE_SIZE, TILE_SIZE, TILE_SIZE), 2)
+            if puzzle[i * 3 + j] != 0:
+                text = font.render(str(puzzle[i * 3 + j]), True, BLACK)
+                text_rect = text.get_rect(center=(j * TILE_SIZE + TILE_SIZE // 2, i * TILE_SIZE + TILE_SIZE // 2))
+                window.blit(text, text_rect)
+    pygame.display.update()
+
 def imprimir_camino(nodo_desde_inicio, nodo_desde_meta):
     # Encuentra el camino desde el estado inicial hasta el estado meta
     camino_inicio = []
@@ -111,6 +140,9 @@ def imprimir_camino(nodo_desde_inicio, nodo_desde_meta):
     for i, nodo in enumerate(camino_inicio):  # Sin invertir el camino
         print(f"Paso {i+1}:")
         imprimir_matriz(nodo.estado)
+        lista = [0 if elemento is None else elemento for sublista in nodo.estado for elemento in sublista]
+        display_puzzle(lista)
+        pygame.time.delay(500)  # Delay for visualization
         print()  # Línea en blanco entre pasos
 
 def bs():
@@ -155,3 +187,12 @@ def funcion():
         bs()
 
 funcion()
+
+# Event loop
+running = True
+while running:
+    for event in pygame.event.get():
+        if event.type == QUIT:
+            running = False
+
+pygame.quit()
