@@ -11,14 +11,17 @@ class DNA:
         self.n_generations = n_generations
         self.verbose = verbose
 
+    # creación de un individuo
     def create_individual(self, max=15):
         possible_values = [i for i in range(1, max) if i not in [0, 4, 7, 12]]
         individual = random.sample(possible_values, 7)
         return individual
 
+    # creación de toda la población, iterando en la creación de los individuos
     def create_population(self):
         return [self.create_individual() for _ in range(self.n_individuals)]
     
+    # cálculo de la distancia Euclidiana
     def distancia(self, punto1, punto2):
         """ 
         Calcula la distancia euclidiana entre dos puntos en un espacio n-dimensional.
@@ -37,6 +40,7 @@ class DNA:
         distancia = math.sqrt(suma_cuadrados)
         return distancia
     
+    # función fitness en dónde se realiza el recorrido establecido en el proyecto para calcular la distancia recorrida
     def fitness(self, individuo):
         # Diccionario de coordenadas
         coordenadas = {
@@ -83,8 +87,7 @@ class DNA:
             cont += 1
         return fitness
 
-
-    
+    # se selecciona al mejor individuo de la población
     def selection(self, population):
         scores = [(self.fitness(i), i) for i in population]
         scores = [i[1] for i in sorted(scores)]
@@ -92,6 +95,7 @@ class DNA:
         print(scores)
         return scores[len(scores)-self.n_selection:]
     
+    # se hace el cruce para generar nuevos individuos
     def reproduction(self, population, selected):
         children = []
         for _ in range(self.n_individuals):
@@ -109,6 +113,7 @@ class DNA:
             children.append(child)
         return children
     
+    # se realizan las variaciones para añadir una pizca de aleatoriedad
     def mutation(self, population):
         for i in range(len(population)):
             if random.random() <= self.mutation_rate:
