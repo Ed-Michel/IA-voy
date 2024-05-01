@@ -64,7 +64,7 @@ toolbox.register("population", tools.initRepeat, list, toolbox.individual)
 
 def evaluate(individual):
     posiciones = [indice for indice, valor in enumerate(individual) if valor == 1]
-    neuronas = math.ceil(individual.count(1) *1.5)
+    neuronas = math.ceil(individual.count(1) * 1.5)
 
     modelo = tf.keras.Sequential()
     # capa de entrada
@@ -113,7 +113,11 @@ def trainning(individual):
     datos_evaluacion = evaluation_set[:, posiciones]
     evaluacion_salida = evaluation_set[:, -1]
     
-    historial = modelo.fit(datos_entrada, datos_salida, epochs=200, verbose=False)
+    historial = modelo.fit(datos_entrada, datos_salida, epochs=500, verbose=False)
+    plt.xlabel("# Epoca")
+    plt.ylabel("Magnitud de pérdida")
+    plt.plot(historial.history["loss"])
+    plt.show()
     accuracy = modelo.evaluate(datos_evaluacion, evaluacion_salida, verbose=False)
     print("Precisión del modelo:", accuracy)
     return accuracy,
