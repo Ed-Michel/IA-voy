@@ -2,50 +2,40 @@ import array
 import math
 import random
 import tensorflow as tf
-from tensorflow.keras.layers import Dense  # Agregar esta línea para importar Dense
+from tensorflow.keras.layers import Dense
 import csv
 import matplotlib.pyplot as plt
-
-import numpy
+from tensorflow.keras.initializers import TruncatedNormal
+import numpy as np
 
 from deap import algorithms
 from deap import base
 from deap import creator
 from deap import tools
 
-#cargar archivos
-trainning_file = "Proyecto_Red_Neuronal/Ts.csv"
-evaluation_file = "Proyecto_Red_Neuronal/Vs.csv"
+# Cargar archivos
+trainning_file = "Proyecto_Red_Neuronal\Ts.csv"
+evaluation_file = "Proyecto_Red_Neuronal\Vs.csv"
 
 trainning_set = []
 evaluation_set = []
 
 with open(trainning_file, newline='') as archivo:
     lector_csv = csv.reader(archivo)
-    
-    # Ignorar la primera fila (encabezados)
-    next(lector_csv)
-    
-    # Iterar sobre las filas restantes
+    next(lector_csv)  # Ignorar la primera fila (encabezados)
     for fila in lector_csv:
-        # Convertir los elementos de la fila a números y agregarlos a la lista
-        fila_numeros = [float(valor) for valor in fila]
+        fila_numeros = [float(valor) for valor in fila]  # Convertir los elementos de la fila a números
         trainning_set.append(fila_numeros)
 
 with open(evaluation_file, newline='') as archivo:
     lector_csv = csv.reader(archivo)
-    
-    # Ignorar la primera fila (encabezados)
-    next(lector_csv)
-    
-    # Iterar sobre las filas restantes
+    next(lector_csv)  # Ignorar la primera fila (encabezados)
     for fila in lector_csv:
-        # Convertir los elementos de la fila a números y agregarlos a la lista
-        fila_numeros = [float(valor) for valor in fila]
+        fila_numeros = [float(valor) for valor in fila]  # Convertir los elementos de la fila a números
         evaluation_set.append(fila_numeros)
-    
-trainning_set = numpy.array(trainning_set)
-evaluation_set = numpy.array(evaluation_set)
+
+trainning_set = np.array(trainning_set)  # Convertir la lista de entrenamiento a un array numpy
+evaluation_set = np.array(evaluation_set)  # Convertir la lista de evaluación a un array numpy
 
 creator.create("FitnessMin", base.Fitness, weights=(-1.0,))
 creator.create("Individual", array.array, typecode='i', fitness=creator.FitnessMin)
@@ -56,78 +46,77 @@ def generate_individual():
     return [random.randint(0, 1) for _ in range(5)]
 
 toolbox.register("indice", generate_individual)
-
 toolbox.register("individual", tools.initIterate, creator.Individual, toolbox.indice)
 toolbox.register("population", tools.initRepeat, list, toolbox.individual)
 
-#crear las redes neuronales
-
 def evaluate(individual):
     posiciones = [indice for indice, valor in enumerate(individual) if valor == 1]
-    neuronas = math.ceil(individual.count(1) * 1.5)
+    neuronas = math.ceil(individual.count(1) * 3)
 
-    modelo = tf.keras.Sequential()
-    # capa de entrada
-    modelo.add(Dense(units=5, activation='relu', input_shape=[len(posiciones)]))
-    # capa oculta
-    modelo.add(Dense(units = neuronas, activation= 'relu'))
-    # capa de salida
-    modelo.add(Dense(units=1, activation='relu'))
+    modelo = tf.keras.models.Sequential([
+        tf.keras.layers.Flatten(input_shape=[len(posiciones)]),
+        tf.keras.layers.Dense(units=neuronas, activation='tanh', kernel_initializer=TruncatedNormal(mean=0.0, stddev=0.1)),
+        tf.keras.layers.Dense(units=1, activation='linear', kernel_initializer=TruncatedNormal(mean=0.0, stddev=0.1))
+    ])
 
     modelo.compile(
-    optimizer=tf.keras.optimizers.Adam(0.1),
-    loss='mean_squared_error'
-)
-    
+        optimizer=tf.keras.optimizers.Adam(0.01),  # Reducimos la tasa de aprendizaje
+        loss='mean_squared_error',
+        metrics=['mse']
+    )
+
     datos_entrada = trainning_set[:, posiciones]
     datos_salida = trainning_set[:, -1]
 
     datos_evaluacion = evaluation_set[:, posiciones]
-    evaluacion_salida = evaluation_set[:, -1]
+    evaluacion_salida_evaluate = evaluation_set[:, -1]
+
+    historial = modelo.fit(datos_entrada, datos_salida, epochs=5, batch_size=3500, verbose=False)
+    mse = modelo.evaluate(datos_evaluacion, evaluacion_salida_evaluate, verbose=False)[1]  # Extraemos el MSE
     
-    historial = modelo.fit(datos_entrada, datos_salida, epochs=5, verbose=False)
-    accuracy = modelo.evaluate(datos_evaluacion, evaluacion_salida, verbose=False)
-    print("Precisión del modelo:", accuracy)
-    return accuracy,
+    print("MSE del modelo:", mse)
+        
+    return mse,
 
 def trainning(individual):
     posiciones = [indice for indice, valor in enumerate(individual) if valor == 1]
     neuronas = math.ceil(individual.count(1) * 10)
 
-    modelo = tf.keras.Sequential()
-    # capa de entrada
-    modelo.add(Dense(units=5, activation='relu', input_shape=[len(posiciones)]))
-    # capa oculta
-    modelo.add(Dense(units = neuronas, activation= 'relu'))
-    # capa de salida
-    modelo.add(Dense(units=1, activation='sigmoid'))
+    modelo = tf.keras.models.Sequential([
+        tf.keras.layers.Flatten(input_shape=[len(posiciones)]),
+        tf.keras.layers.Dense(units=neuronas, activation='relu'),
+        tf.keras.layers.Dense(units=1, activation='linear')
+    ])
 
     modelo.compile(
-    optimizer=tf.keras.optimizers.Adam(0.1),
-    loss='mean_squared_error'
-) 
-    
+        optimizer=tf.keras.optimizers.Adam(0.01),  # Reducimos la tasa de aprendizaje
+        loss='mean_squared_error',
+        metrics=['mse']
+    )
+
     datos_entrada = trainning_set[:, posiciones]
     datos_salida = trainning_set[:, -1]
 
     datos_evaluacion = evaluation_set[:, posiciones]
-    evaluacion_salida = evaluation_set[:, -1]
-    
-    historial = modelo.fit(datos_entrada, datos_salida, epochs=500, verbose=False)
-    plt.xlabel("# Epoca")
-    plt.ylabel("Magnitud de pérdida")
-    plt.plot(historial.history["loss"])
-    plt.show()
-    accuracy = modelo.evaluate(datos_evaluacion, evaluacion_salida, verbose=False)
-    print("Precisión del modelo:", accuracy)
-    return accuracy,
+    evaluacion_salida_evaluate = evaluation_set[:, -1]
 
+    history = modelo.fit(datos_entrada, datos_salida, epochs=500, batch_size=3500, verbose=False)
+    mse = modelo.evaluate(datos_evaluacion, evaluacion_salida_evaluate, verbose=False)[1] 
+    print("MSE del modelo:", mse)
+    
+    plt.plot(history.history['mse'], label='Training MSE')
+    plt.title('Model MSE')
+    plt.xlabel('Epochs')
+    plt.ylabel('MSE')
+    plt.legend()
+    plt.show()
+    
+    return mse,
 
 toolbox.register("mate", tools.cxPartialyMatched)
-toolbox.register("mutate", tools.mutShuffleIndexes, indpb=0.05)
+toolbox.register("mutate", tools.mutShuffleIndexes, indpb=0.03)
 toolbox.register("select", tools.selTournament, tournsize=5)
 toolbox.register("evaluate", evaluate)
-
 
 def main():
     random.seed(169)
@@ -136,22 +125,58 @@ def main():
 
     hof = tools.HallOfFame(5)
     stats = tools.Statistics(lambda ind: ind.fitness.values)
-    stats.register("avg", numpy.mean)
-    stats.register("std", numpy.std)
-    stats.register("min", numpy.min)
-    stats.register("max", numpy.max)
-    
-    algorithms.eaSimple(pop, toolbox, 0.7, 0.2, 5, stats=stats, 
-                        halloffame=hof)
-    
+    stats.register("avg", np.mean)
+    stats.register("std", np.std)
+    stats.register("min", np.min)
+    stats.register("max", np.max)
+
+    algorithms.eaSimple(pop, toolbox, 0.7, 0.2, 5, stats=stats, halloffame=hof)
+
     return pop, stats, hof
 
 if __name__ == "__main__":
-    pop,stats,hof=main()
-    evaluado =[]
+    pop, stats, hof = main()
+    evaluado = []
     for individual in hof:
         evaluacion = trainning(individual)
         evaluado.append((individual, evaluacion))
-    
+
     evaluado.sort(key=lambda x: x[1])
     print(evaluado)
+    
+    # Obtener el mejor individuo
+    mejor_individuo = hof[0]
+
+    # Obtener las posiciones del mejor individuo
+    posiciones_mejor_individuo = [indice for indice, valor in enumerate(mejor_individuo) if valor == 1]
+
+    # Crear el modelo con las características del mejor individuo
+    modelo_mejor_individuo = tf.keras.models.Sequential([
+        tf.keras.layers.Flatten(input_shape=[len(posiciones_mejor_individuo)]),
+        tf.keras.layers.Dense(units=len(posiciones_mejor_individuo) * 3, activation='relu'),
+        tf.keras.layers.Dense(units=1, activation='linear')
+    ])
+
+    modelo_mejor_individuo.compile(
+        optimizer=tf.keras.optimizers.Adam(0.01),  # Reducimos la tasa de aprendizaje
+        loss='mean_squared_error',
+        metrics=['mse']
+    )
+
+    # Entrenar el modelo con el conjunto de entrenamiento completo
+    datos_entrada = trainning_set[:, posiciones_mejor_individuo]
+    datos_salida = trainning_set[:, -1]
+    history = modelo_mejor_individuo.fit(datos_entrada, datos_salida, epochs=20, batch_size=3500, verbose=False)
+
+    # Obtener las predicciones del modelo en el conjunto de evaluación
+    datos_evaluacion = evaluation_set[:, posiciones_mejor_individuo]
+    predicciones_evaluacion = modelo_mejor_individuo.predict(datos_evaluacion)
+
+    # Graficar las predicciones junto con los valores reales de salida
+    plt.plot(evaluation_set[:, -1], label='Actual Output')
+    plt.plot(predicciones_evaluacion, label='Predicted Output')
+    plt.title('Actual vs Predicted Output')
+    plt.xlabel('Sample')
+    plt.ylabel('Value')
+    plt.legend()
+    plt.show()
