@@ -16,8 +16,8 @@ class Dense:
         self.cfg = get_cfg()
         add_densepose_config(self.cfg)
         self.cfg.merge_from_file(
-            "/home/mcc/PycharmProjects/Features_Extractor_HGR/DensePose/configs/densepose_rcnn_R_50_FPN_s1x.yaml")
-        self.cfg.MODEL.DEVICE = "0"
+            "Proyecto_Extractor_Caracteristicas\Features_Extractor_HGR\DensePose\configs\densepose_rcnn_R_50_FPN_s1x.yaml")
+        self.cfg.MODEL.DEVICE = "cpu"
         self.cfg.MODEL.ROI_HEADS.SCORE_THRESH_TEST = 0.5
         self.cfg.MODEL.WEIGHTS = "https://dl.fbaipublicfiles.com/densepose/densepose_rcnn_R_50_FPN_s1x/165712039/model_final_162be9.pkl"
         self.predictor = DefaultPredictor(self.cfg)
@@ -47,7 +47,7 @@ class Dense:
         self.frame_width = int(self.cap.get(cv2.CAP_PROP_FRAME_WIDTH))
         self.frame_height = int(self.cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
         self.fps = self.cap.get(cv2.CAP_PROP_FPS)
-        self.output_path = '/home/mcc/PycharmProjects/Features_Extractor_HGR/video-outputs/' + output_path
+        self.output_path = 'Proyecto_Extractor_Caracteristicas\\Features_Extractor_HGR\\video-outputs\\' + output_path
         if not os.path.exists(self.output_path):
             os.makedirs(self.output_path)
         self.outvid_2 = cv2.VideoWriter(self.output_path + '/mask.avi',

@@ -7,35 +7,34 @@ import csv
 import matplotlib.pyplot as plt
 from tensorflow.keras.initializers import TruncatedNormal
 import numpy as np
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import MinMaxScaler
 
 from deap import algorithms
 from deap import base
 from deap import creator
 from deap import tools
 
-# Cargar archivos
-trainning_file = "Proyecto_Red_Neuronal\Ts.csv"
-evaluation_file = "Proyecto_Red_Neuronal\Vs.csv"
+# Cargar archivo CSV
+file_path = "Proyecto_Red_Neuronal\entrada_y_salida_sin_vacios.csv"
 
-trainning_set = []
-evaluation_set = []
+dataset = []
 
-with open(trainning_file, newline='') as archivo:
+with open(file_path, newline='') as archivo:
     lector_csv = csv.reader(archivo)
     next(lector_csv)  # Ignorar la primera fila (encabezados)
     for fila in lector_csv:
         fila_numeros = [float(valor) for valor in fila]  # Convertir los elementos de la fila a números
-        trainning_set.append(fila_numeros)
+        dataset.append(fila_numeros)
 
-with open(evaluation_file, newline='') as archivo:
-    lector_csv = csv.reader(archivo)
-    next(lector_csv)  # Ignorar la primera fila (encabezados)
-    for fila in lector_csv:
-        fila_numeros = [float(valor) for valor in fila]  # Convertir los elementos de la fila a números
-        evaluation_set.append(fila_numeros)
+dataset = np.array(dataset)  # Convertir la lista a un array numpy
 
-trainning_set = np.array(trainning_set)  # Convertir la lista de entrenamiento a un array numpy
-evaluation_set = np.array(evaluation_set)  # Convertir la lista de evaluación a un array numpy
+# Normalizar los datos
+scaler = MinMaxScaler()
+dataset_normalized = scaler.fit_transform(dataset)
+
+# Dividir los datos en conjunto de entrenamiento y conjunto de evaluación (70% training, 30% evaluation)
+trainning_set, evaluation_set = train_test_split(dataset_normalized, test_size=0.3, random_state=42)
 
 creator.create("FitnessMin", base.Fitness, weights=(-1.0,))
 creator.create("Individual", array.array, typecode='i', fitness=creator.FitnessMin)
@@ -166,7 +165,7 @@ if __name__ == "__main__":
     # Entrenar el modelo con el conjunto de entrenamiento completo
     datos_entrada = trainning_set[:, posiciones_mejor_individuo]
     datos_salida = trainning_set[:, -1]
-    history = modelo_mejor_individuo.fit(datos_entrada, datos_salida, epochs=20, batch_size=3500, verbose=False)
+    history = modelo_mejor_individuo.fit(datos_entrada, datos_salida, epochs=500, batch_size=3500, verbose=False)
 
     # Obtener las predicciones del modelo en el conjunto de evaluación
     datos_evaluacion = evaluation_set[:, posiciones_mejor_individuo]

@@ -16,13 +16,13 @@ class Detectron:
         self.cfg.merge_from_file(model_zoo.get_config_file("COCO-Keypoints/keypoint_rcnn_R_50_FPN_3x.yaml"))
         self.cfg.MODEL.ROI_HEADS.SCORE_THRESH_TEST = 0.7  # set threshold for this model
         self.cfg.MODEL.WEIGHTS = model_zoo.get_checkpoint_url("COCO-Keypoints/keypoint_rcnn_R_50_FPN_3x.yaml")
-        self.cfg.MODEL.DEVICE = 1
+        self.cfg.MODEL.DEVICE = "cpu"
         self.predictor = DefaultPredictor(self.cfg)
         self.cap = cv2.VideoCapture(video)
         self.frame_width = 1017
         self.frame_height = 576
         self.fps = self.cap.get(cv2.CAP_PROP_FPS)
-        self.output_path = '/home/mcc/PycharmProjects/Features_Extractor_HGR/video-outputs/' + output_path
+        self.output_path = 'Proyecto_Extractor_Caracteristicas\\Features_Extractor_HGR\\video-outputs\\' + output_path
         if not os.path.exists(self.output_path):
             os.makedirs(self.output_path)
         self.outvid = cv2.VideoWriter(self.output_path,
