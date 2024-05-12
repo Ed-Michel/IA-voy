@@ -88,9 +88,9 @@ class Vectorizer:
                 self.dict_kp[key] = np.reshape(self.dict_kp[key], (self.frames, 2))
 
         for key in self.dict_kp:
-            if not os.path.exists("Proyecto_Extractor_Caracteristicas\Features_Extractor_HGR\csvs\keypoints" + self.output_path):
-                os.makedirs("Proyecto_Extractor_Caracteristicas\Features_Extractor_HGR\csvs\keypoints" + self.output_path)
-            np.savetxt("Proyecto_Extractor_Caracteristicas\Features_Extractor_HGR\csvs\keypoints" + self.output_path + "/" + key + ".csv", self.dict_kp[key], delimiter=",")
+            if not os.path.exists("/content/Features_Extractor_HGR/csvs/keypoints/" + self.output_path):
+                os.makedirs("/content/Features_Extractor_HGR/csvs/keypoints/" + self.output_path)
+            np.savetxt("/content/Features_Extractor_HGR/csvs/keypoints/" + self.output_path + "/" + key + ".csv", self.dict_kp[key], delimiter=",")
 
     def angles_csv_generator(self):
         for i in range(self.frames):
@@ -145,9 +145,9 @@ class Vectorizer:
         for key in self.dict_angles:
             self.dict_angles[key] = np.reshape(self.dict_angles[key], (self.frames, 1))
         for key in self.dict_angles:
-            if not os.path.exists("Proyecto_Extractor_Caracteristicas\\Features_Extractor_HGR\\csvs\\angles" + self.output_path):
-                os.makedirs("Proyecto_Extractor_Caracteristicas\\Features_Extractor_HGR\\csvs\\angles" + self.output_path)
-            np.savetxt("Proyecto_Extractor_Caracteristicas\\Features_Extractor_HGR\\csvs\\angles" + self.output_path + "/" + key + ".csv", self.dict_angles[key], delimiter=",")
+            if not os.path.exists("/content/Features_Extractor_HGR/csvs/angles/" + self.output_path):
+                os.makedirs("/content/Features_Extractor_HGR/csvs/angles/" + self.output_path)
+            np.savetxt("/content/Features_Extractor_HGR/csvs/angles/" + self.output_path + "/" + key + ".csv", self.dict_angles[key], delimiter=",")
 
     def plotter(self):
         for key in self.dict_angles:
@@ -158,7 +158,7 @@ class Vectorizer:
             my_plot.xlabel("Frames")
             my_plot.ylabel("Angles")
             my_plot.plot(x, y, color="blue")
-            if not os.path.exists("Proyecto_Extractor_Caracteristicas\Features_Extractor_HGR\plots" + self.output_path):
-                os.makedirs("Proyecto_Extractor_Caracteristicas\Features_Extractor_HGR\plots" + self.output_path)
-            my_plot.savefig("Proyecto_Extractor_Caracteristicas\Features_Extractor_HGR\plots" + self.output_path + "/" + key + ".png")
+            if not os.path.exists("/content/Features_Extractor_HGR/plots/" + self.output_path):
+                os.makedirs("/content/Features_Extractor_HGR/plots/" + self.output_path)
+            my_plot.savefig("/content/Features_Extractor_HGR/plots/" + self.output_path + "/" + key + ".png")
 

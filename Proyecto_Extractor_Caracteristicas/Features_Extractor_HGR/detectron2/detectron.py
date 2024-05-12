@@ -22,7 +22,7 @@ class Detectron:
         self.frame_width = 1017
         self.frame_height = 576
         self.fps = self.cap.get(cv2.CAP_PROP_FPS)
-        self.output_path = 'Proyecto_Extractor_Caracteristicas\\Features_Extractor_HGR\\video-outputs\\' + output_path
+        self.output_path = '/content/Features_Extractor_HGR/video-outputs/' + output_path
         if not os.path.exists(self.output_path):
             os.makedirs(self.output_path)
         self.outvid = cv2.VideoWriter(self.output_path,
